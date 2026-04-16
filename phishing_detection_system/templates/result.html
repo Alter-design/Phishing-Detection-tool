@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Result - Phishing Detector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            🛡️ Phishing Detector
+        </div>
+        <ul class="navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li><a href="/detect">Detect</a></li>
+            <li><a href="/admin">Admin</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="card fade-in">
+            <h2 class="card-header" style="text-align: center;">📊 Scan Result</h2>
+            
+            {% if result.prediction == 'Phishing' %}
+            <div class="result-box phishing">
+                <div class="result-icon">⚠️</div>
+                <div class="result-title risk-high">PHISHING DETECTED!</div>
+                <div class="result-confidence">Confidence: {{ result.confidence }}%</div>
+            </div>
+            {% else %}
+            <div class="result-box legitimate">
+                <div class="result-icon">✅</div>
+                <div class="result-title" style="color: var(--secondary-color);">LEGITIMATE URL</div>
+                <div class="result-confidence">Confidence: {{ result.confidence }}%</div>
+            </div>
+            {% endif %}
+
+            <div style="margin-top: 2rem;">
+                <table class="table">
+                    <tr>
+                        <th>Detail</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>URL</td>
+                        <td style="word-break: break-all;">{{ result.url }}</td>
+                    </tr>
+                    <tr>
+                        <td>Scan ID</td>
+                        <td>{{ result.id }}</td>
+                    </tr>
+                    <tr>
+                        <td>Prediction</td>
+                        <td>
+                            {% if result.prediction == 'Phishing' %}
+                            <span class="risk-high">{{ result.prediction }}</span>
+                            {% else %}
+                            <span class="risk-low">{{ result.prediction }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Confidence</td>
+                        <td>{{ result.confidence }}%</td>
+                    </tr>
+                    <tr>
+                        <td>Risk Level</td>
+                        <td>
+                            {% if result.risk_level == 'HIGH' %}
+                            <span class="risk-high">{{ result.risk_level }}</span>
+                            {% elif result.risk_level == 'MEDIUM' %}
+                            <span class="risk-medium">{{ result.risk_level }}</span>
+                            {% else %}
+                            <span class="risk-low">{{ result.risk_level }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if result.scan_date %}
+                    <tr>
+                        <td>Scan Date</td>
+                        <td>{{ result.scan_date }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+
+            <div style="margin-top: 2rem; text-align: center;">
+                <a href="/detect">
+                    <button class="btn btn-primary">🔍 Scan Another URL</button>
+                </a>
+                <a href="/">
+                    <button class="btn btn-secondary">🏠 Home</button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>🔒 Phishing Detection System &copy; 2024 | Powered by Machine Learning</p>
+    </div>
+</body>
+</html>

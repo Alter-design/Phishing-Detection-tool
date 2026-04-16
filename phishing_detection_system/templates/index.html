@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detect Phishing URL</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            🛡️ Phishing Detector
+        </div>
+        <ul class="navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li><a href="/detect">Detect</a></li>
+            <li><a href="/admin">Admin</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="card fade-in">
+            <h2 class="card-header" style="text-align: center;">🔍 URL Phishing Detection</h2>
+            <p style="text-align: center; color: var(--gray-500); margin-bottom: 2rem;">
+                Enter a URL below to check if it's a phishing attempt
+            </p>
+            
+            <form method="POST" action="/detect">
+                <div class="form-group">
+                    <input 
+                        type="text" 
+                        name="url" 
+                        class="form-input url-input" 
+                        placeholder="Enter URL (e.g., http://suspicious-site.com/login)"
+                        required
+                        autocomplete="off"
+                    >
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="font-size: 1.1rem;">
+                    🚀 Scan URL
+                </button>
+            </form>
+        </div>
+
+        {% if result %}
+        <div class="card fade-in">
+            <h2 class="card-header" style="text-align: center;">📊 Detection Result</h2>
+            
+            {% if result.prediction == 'Phishing' %}
+            <div class="result-box phishing">
+                <div class="result-icon">⚠️</div>
+                <div class="result-title risk-high">PHISHING DETECTED!</div>
+                <div class="result-confidence">Confidence: {{ result.confidence }}%</div>
+                <p style="margin-top: 1rem; color: #991b1b;">
+                    <strong>Risk Level:</strong> <span class="risk-high">{{ result.risk_level }}</span>
+                </p>
+            </div>
+            {% else %}
+            <div class="result-box legitimate">
+                <div class="result-icon">✅</div>
+                <div class="result-title" style="color: var(--secondary-color);">LEGITIMATE URL</div>
+                <div class="result-confidence">Confidence: {{ result.confidence }}%</div>
+                <p style="margin-top: 1rem; color: #065f46;">
+                    <strong>Risk Level:</strong> <span class="risk-low">{{ result.risk_level }}</span>
+                </p>
+            </div>
+            {% endif %}
+
+            <div style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem;">📋 Analysis Details</h3>
+                <table class="table">
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>URL</td>
+                        <td style="word-break: break-all;">{{ result.url }}</td>
+                    </tr>
+                    <tr>
+                        <td>XGBoost Prediction</td>
+                        <td>
+                            {% if result.xgb_prediction == 'Phishing' %}
+                            <span class="risk-high">{{ result.xgb_prediction }}</span>
+                            {% else %}
+                            <span class="risk-low">{{ result.xgb_prediction }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Random Forest Prediction</td>
+                        <td>
+                            {% if result.rf_prediction == 'Phishing' %}
+                            <span class="risk-high">{{ result.rf_prediction }}</span>
+                            {% else %}
+                            <span class="risk-low">{{ result.rf_prediction }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Rule-Based Score</td>
+                        <td>
+                            {% if result.rule_score is not none %}
+                                {% if result.rule_score >= 5 %}
+                                <span class="risk-high">{{ result.rule_score }} (Suspicious)</span>
+                                {% else %}
+                                <span class="risk-low">{{ result.rule_score }} (Normal)</span>
+                                {% endif %}
+                            {% else %}
+                            <span class="risk-low">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>URL Length</td>
+                        <td>{{ result.details.url_length }} characters</td>
+                    </tr>
+                    <tr>
+                        <td>Has HTTPS</td>
+                        <td>
+                            {% if result.details.has_https %}
+                            <span class="risk-low">✅ Yes</span>
+                            {% else %}
+                            <span class="risk-high">❌ No</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Has IP Address</td>
+                        <td>
+                            {% if result.details.has_ip %}
+                            <span class="risk-high">⚠️ Yes (Suspicious)</span>
+                            {% else %}
+                            <span class="risk-low">✅ No</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suspicious Keywords</td>
+                        <td>
+                            {% if result.details.has_suspicious_keywords %}
+                            <span class="risk-high">⚠️ Detected</span>
+                            {% else %}
+                            <span class="risk-low">✅ None</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="margin-top: 2rem; text-align: center;">
+                <a href="/detect">
+                    <button class="btn btn-primary">🔍 Scan Another URL</button>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        <p>🔒 Phishing Detection System &copy; 2024 | Powered by Machine Learning</p>
+    </div>
+</body>
+</html>

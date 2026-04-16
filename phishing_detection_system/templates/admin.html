@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Phishing Detector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        // Prevent back button cache - force logout on back button
+        window.onpageshow = function(event) {
+            if (event.persisted) {
+                // Page is cached, redirect to login
+                window.location.href = '/login';
+            }
+        };
+        
+        // Disable back button in browser history
+        history.pushState(null, null, location.href);
+        window.onpopstate = function() {
+            history.go(1);
+        };
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            🛡️ Phishing Detector
+        </div>
+        <ul class="navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li><a href="/detect">Detect</a></li>
+            <li><a href="/admin">Admin</a></li>
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1 style="color: var(--white); margin-bottom: 2rem;">📊 Admin Dashboard</h1>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total_scans }}</div>
+                <div class="stat-label">Total Scans</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--danger-color);">{{ stats.phishing_detected }}</div>
+                <div class="stat-label">Phishing Detected</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--secondary-color);">{{ stats.legitimate_detected }}</div>
+                <div class="stat-label">Legitimate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ "%.1f"|format((stats.phishing_detected / stats.total_scans * 100) if stats.total_scans > 0 else 0) }}%</div>
+                <div class="stat-label">Phishing Rate</div>
+            </div>
+        </div>
+
+        <!-- Whitelist Management -->
+        <div class="card" id="whitelist-section">
+            <h2 class="card-header">✅ Whitelist Management</h2>
+            
+            <!-- Add to Whitelist Form -->
+            <form method="POST" action="/admin/whitelist/add" style="margin-bottom: 2rem;">
+                <div class="form-group">
+                    <label style="color: var(--white); margin-bottom: 0.5rem; display: block;">Add New URL to Whitelist:</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input 
+                            type="text" 
+                            name="url" 
+                            class="form-input" 
+                            placeholder="Enter URL (e.g., example.com)"
+                            style="flex: 1;"
+                        >
+                        <button type="submit" class="btn btn-success">Add to Whitelist</button>
+                    </div>
+                    <small style="color: var(--secondary-color);">URLs in whitelist will always be marked as Legitimate</small>
+                </div>
+            </form>
+            
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" style="margin-bottom: 1rem; padding: 10px; border-radius: 5px; background: {% if category == 'success' %}#10b981{% else %}#ef4444{% endif %}; color: white;">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Whitelist Table -->
+            {% if whitelist %}
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>URL</th>
+                            <th>Added By</th>
+                            <th>Date Added</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in whitelist %}
+                        <tr>
+                            <td>{{ item[0] }}</td>
+                            <td style="word-break: break-all;">{{ item[1] }}</td>
+                            <td>{{ item[2] }}</td>
+                            <td>{{ item[3] }}</td>
+                            <td>
+                                <a href="/admin/whitelist/remove/{{ item[0] }}" 
+                                   class="btn btn-danger" 
+                                   style="padding: 5px 10px; font-size: 0.8rem;"
+                                   onclick="return confirm('Are you sure you want to remove this URL from whitelist?');">
+                                    Remove
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--white);">No URLs in whitelist.</p>
+            {% endif %}
+        </div>
+
+        <!-- Search Results or Recent Scans -->
+        {% if search_results %}
+        <div class="card">
+            <h2 class="card-header">📋 Search Results</h2>
+            {% if search_results %}
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>URL</th>
+                            <th>Prediction</th>
+                            <th>Confidence</th>
+                            <th>Risk</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for scan in search_results %}
+                        <tr>
+                            <td>{{ scan[0] }}</td>
+                            <td style="word-break: break-all; max-width: 300px;">{{ scan[1] }}</td>
+                            <td>
+                                {% if scan[2] == 'Phishing' %}
+                                <span class="risk-high">{{ scan[2] }}</span>
+                                {% elif "Suspicious" in scan[2] %}
+                                <span class="risk-medium">{{ scan[2] }}</span>
+                                {% else %}
+                                <span class="risk-low">{{ scan[2] }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ "%.1f"|format(scan[3]) }}%</td>
+                            <td>
+                                {% if scan[4] == 'HIGH' %}
+                                <span class="risk-high">{{ scan[4] }}</span>
+                                {% elif scan[4] == 'MEDIUM' %}
+                                <span class="risk-medium">{{ scan[4] }}</span>
+                                {% else %}
+                                <span class="risk-low">{{ scan[4] }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ scan[5] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No results found.</p>
+            {% endif %}
+        </div>
+        {% else %}
+        <!-- Recent Scans -->
+        <div class="card">
+            <h2 class="card-header">📋 Recent Scans</h2>
+            {% if recent_scans %}
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>URL</th>
+                            <th>Prediction</th>
+                            <th>Confidence</th>
+                            <th>Risk</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for scan in recent_scans %}
+                        <tr>
+                            <td>{{ scan[0] }}</td>
+                            <td style="word-break: break-all; max-width: 300px;">{{ scan[1] }}</td>
+                            <td>
+                                {% if scan[2] == 'Phishing' %}
+                                <span class="risk-high">{{ scan[2] }}</span>
+                                {% elif "Suspicious" in scan[2] %}
+                                <span class="risk-medium">{{ scan[2] }}</span>
+                                {% else %}
+                                <span class="risk-low">{{ scan[2] }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ "%.1f"|format(scan[3]) }}%</td>
+                            <td>
+                                {% if scan[4] == 'HIGH' %}
+                                <span class="risk-high">{{ scan[4] }}</span>
+                                {% elif scan[4] == 'MEDIUM' %}
+                                <span class="risk-medium">{{ scan[4] }}</span>
+                                {% else %}
+                                <span class="risk-low">{{ scan[4] }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ scan[5] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No scans yet. <a href="/detect">Start detecting!</a></p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Model Info -->
+        <div class="card">
+            <h2 class="card-header">🤖 Model Information</h2>
+            <div class="model-info">
+                <h3>Best Model: XGBoost</h3>
+                <p>Accuracy: 97.74%</p>
+            </div>
+            <div class="model-info">
+                <h3>Secondary Model: Random Forest</h3>
+                <p>Accuracy: 96.79%</p>
+            </div>
+            <div class="model-info">
+                <h3>Training Data</h3>
+                <p>Samples: 11,055 | Features: 30</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>🔒 Phishing Detection System &copy; 2024 | Admin Panel</p>
+    </div>
+</body>
+</html>

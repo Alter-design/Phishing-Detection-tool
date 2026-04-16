@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            🛡️ Phishing Detector
+        </div>
+        <ul class="navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li><a href="/detect">Detect</a></li>
+            <li><a href="/admin">Admin</a></li>
+        </ul>
+    </nav>
+
+    <div class="hero">
+        <h1>🛡️ Phishing Detection System</h1>
+        <p>Advanced ML-based URL protection powered by XGBoost & Random Forest</p>
+        <p style="font-size: 1rem; opacity: 0.9;">Accuracy: 97.74% | 30 Features | 11,055 Training Samples</p>
+        
+        <div style="margin-top: 2rem;">
+            <a href="/detect">
+                <button class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem;">
+                    🔍 Start Detection
+                </button>
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">97.74%</div>
+                <div class="stat-label">Accuracy</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">30</div>
+                <div class="stat-label">Features</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">2</div>
+                <div class="stat-label">ML Models</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">11K+</div>
+                <div class="stat-label">Training Samples</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-header">How It Works</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                <div>
+                    <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">1. URL Analysis</h3>
+                    <p>We extract 30 unique features from every URL including SSL state, URL length, domain info, and suspicious patterns.</p>
+                </div>
+                <div>
+                    <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">2. ML Detection</h3>
+                    <p>Our ensemble of XGBoost and Random Forest models analyze the features to determine if the URL is phishing or legitimate.</p>
+                </div>
+                <div>
+                    <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">3. Risk Assessment</h3>
+                    <p>Get instant results with confidence scores and risk levels to make informed decisions about suspicious links.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>🔒 Phishing Detection System &copy; 2024 | Powered by Machine Learning</p>
+    </div>
+</body>
+</html>
